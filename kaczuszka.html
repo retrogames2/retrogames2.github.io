@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KACZKA CHAOS - Water Ripple</title>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: black;
+    position: relative;
+  }
+
+  #pageWrapper {
+    width: 100%;
+    height: 100%;
+    transform-origin: center;
+  }
+
+  #kaczkaBtn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    padding: 20px 40px;
+    background: yellow;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    z-index: 100;
+  }
+
+  #vid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 10;
+  }
+
+  #camera {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    opacity: 0.2;
+    pointer-events: none;
+    z-index: 5;
+    transition: opacity 0.5s ease;
+  }
+
+  .flyingDuck {
+    position: absolute;
+    font-size: 24px;
+    pointer-events: none;
+    user-select: none;
+    z-index: 30;
+  }
+
+  .shakeEffect {
+    animation: shake 0.2s infinite;
+  }
+  @keyframes shake {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(3px, -3px); }
+    50% { transform: translate(-3px, 3px); }
+    75% { transform: translate(3px, 3px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  #flashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 999999;
+  }
+
+</style>
+</head>
+<body>
+<div id="flashScreen"></div>
+
+<div id="pageWrapper">
+
+  <button id="kaczkaBtn">🦆 Kaczuszka</button>
+
+  <video id="vid" playsinline loop>
+    <source src="kaczka.mp4" type="video/mp4">
+  </video>
+
+  <video id="camera" autoplay playsinline></video>
+
+</div>
+
+<!-- MOCNIEJSZE FALOWANIE -->
+<svg width="0" height="0" style="position:absolute">
+  <filter id="ripple">
+    <feTurbulence id="turb" baseFrequency="0.05 0.05" numOctaves="3" seed="2" stitchTiles="stitch"/>
+    <feDisplacementMap id="disp" in="SourceGraphic" scale="25" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<script>
+
+/* ===================== KAMERA ===================== */
+const cameraVid = document.getElementById("camera");
+
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        cameraVid.srcObject = stream;
+    } catch (err) {
+        console.warn("Nie udało się uzyskać dostępu do kamery:", err);
+    }
+}
+
+/* ===================== POWIADOMIENIA ===================== */
+function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    console.log("Twoja przeglądarka nie obsługuje powiadomień.");
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      showNotification("Kaczka Chaos", "Powiadomienia włączone! 🦆");
+    } else {
+      console.log("Użytkownik odmówił powiadomień.");
+    }
+  });
+}
+
+function showNotification(title, body) {
+  new Notification(title, { body });
+}
+
+/* POPUPY */
+function createBouncingWindow(text, sx, sy) {
+  const win = window.open("", "", "width=250,height=200");
+  if (!win) return;
+
+  win.document.write(`
+    <body style="
+      margin:0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:black;
+    ">
+      <img src="kaczka.jpg" alt="kaczka" style="max-width:100%;max-height:100%;">
+    </body>
+  `);
+
+  let vx = sx, vy = sy;
+
+  function bounce() {
+    try {
+      const sw = screen.availWidth, sh = screen.availHeight;
+      const x = win.screenX, y = win.screenY;
+      const w = win.outerWidth, h = win.outerHeight;
+
+      if (x + w >= sw || x <= 0) vx = -vx;
+      if (y + h >= sh || y <= 0) vy = -vy;
+
+      win.moveBy(vx, vy);
+    } catch(e) {
+      return;
+    }
+    requestAnimationFrame(bounce);
+  }
+  bounce();
+}
+
+let popupCount = 0;
+
+function startPopups() {
+  setInterval(() => {
+    popupCount++;
+    createBouncingWindow("", (Math.random() * 12 - 6), (Math.random() * 12 - 6));
+  }, 300);
+}
+
+/* ALERTY */
+function startAlerts(){
+  setInterval(()=>alert("🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆"), 800);
+}
+
+/* LATAJĄCE KACZKI */
+function flyingDucks(){
+  setInterval(()=>{
+    const d = document.createElement("div");
+    d.className="flyingDuck";
+    d.textContent="🦆";
+    d.style.left=Math.random()*innerWidth+"px";
+    d.style.top=Math.random()*innerHeight+"px";
+    document.body.appendChild(d);
+
+    let vx=Math.random()*6-3, vy=Math.random()*6-3;
+    function move(){
+      const r=d.getBoundingClientRect();
+      if(r.left<=0||r.right>=innerWidth) vx=-vx;
+      if(r.top<=0||r.bottom>=innerHeight) vy=-vy;
+      d.style.left=(r.left+vx)+"px";
+      d.style.top=(r.top+vy)+"px";
+      requestAnimationFrame(move);
+    }
+    move();
+    setTimeout(()=>d.remove(),20000);
+  },250);
+}
+
+/* GLITCH */
+function glitchEffect(){
+  setInterval(()=>{
+    document.body.style.background=`rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+    setTimeout(()=>document.body.style.background="black",150);
+  },1000);
+}
+
+function startWhiteFlashes() {
+  const flash = document.getElementById("flashScreen");
+
+  function flashOnce() {
+    flash.style.opacity = 1;
+    setTimeout(() => {
+      flash.style.opacity = 0;
+    }, 100);
+  }
+
+  function loop() {
+    const delay = 2000 + Math.random() * 1000;
+    flashOnce();
+    setTimeout(loop, delay);
+  }
+
+  loop();
+}
+
+function randomQuack(){
+  const quackSounds = []; // tu możesz dodać ścieżki do dźwięków
+  setInterval(()=>{
+    if(quackSounds.length>0){
+      (new Audio(quackSounds[Math.floor(Math.random()*quackSounds.length)])).play();
+    }
+  },2000);
+}
+
+/* ===================== PISK W FORMIE PIŁY W JEDNYM TONIE ===================== */
+let audioCtx = null, osc = null;
+function startSawScream(){
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sawtooth";      // fala piłokształtna
+    osc.frequency.value = 440;   // stały ton (możesz zmienić np. na 300)
+
+    gain.gain.value = 0.25;      // głośność
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+  }
+}
+
+/* ===================== SMUGA KACZEK ===================== */
+let enableCursorDucks=false;
+document.addEventListener("mousemove",(e)=>{
+  if(!enableCursorDucks) return;
+  const t=document.createElement("div");
+  t.textContent="🦆";
+  t.style.position="fixed";
+  t.style.left=e.clientX+"px";
+  t.style.top=e.clientY+"px";
+  t.style.transform="translate(-50%,-50%)";
+  t.style.fontSize="20px";
+  t.style.pointerEvents="none";
+  t.style.opacity=1;
+  t.style.transition="opacity 0.6s";
+  document.body.appendChild(t);
+  setTimeout(()=>t.style.opacity=0,5);
+  setTimeout(()=>t.remove(),600);
+});
+
+/* ===================== START ===================== */
+const btn=document.getElementById("kaczkaBtn");
+const vid=document.getElementById("vid");
+
+btn.addEventListener("click",()=>{
+  btn.style.display="none";
+
+  startCamera(); // <-- uruchamiamy kamerę
+
+  startWhiteFlashes();
+  vid.style.opacity=1;
+  vid.muted=false;
+  vid.play();
+
+  enableCursorDucks=true;
+
+  document.getElementById("pageWrapper").classList.add("shakeEffect");
+
+  requestNotificationPermission(); // <-- dodane wywołanie
+
+  startPopups();
+  startAlerts();
+  flyingDucks();
+  glitchEffect();
+  randomQuack();
+  startSawScream();
+});
+</script>
+
+</body>
+</html>
