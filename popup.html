@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>KACZOR</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+  }
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+</head>
+<body>
+
+<video id="vid" src="kaczor.mp4" autoplay loop muted playsinline></video>
+
+<script>
+// ======= ODBIJANIE OKNA =======
+let x = 100, y = 100;
+let dx = 10, dy = 10;
+const w = 320, h = 240;
+
+setInterval(() => {
+  x += dx;
+  y += dy;
+
+  if (x <= 0 || x + w >= screen.availWidth) dx *= -1;
+  if (y <= 0 || y + h >= screen.availHeight) dy *= -1;
+
+  window.moveTo(x, y);
+}, 10);
+
+// ======= ANIMACJA URL =======
+function animateUrlWithBabies() {
+  const e = ['🏻', '🏼', '🏽', '🏾', '🏿'];
+
+  setInterval(() => {
+    let s = '';
+
+    for (let i = 0; i < 10; i++) {
+      const m = Math.floor(Math.random() * e.length);
+      s += '👶' + e[m];
+    }
+
+    history.replaceState(null, "", "#" + encodeURIComponent(s));
+  }, 200);
+}
+
+// start animacji
+animateUrlWithBabies();
+</script>
+
+</body>
+</html>
