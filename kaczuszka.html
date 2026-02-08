@@ -120,15 +120,33 @@
 <script>
 
 /* ===================== KAMERA ===================== */
-const cameraVid = document.getElementById("camera");
+function requestCameraAndMic () {
+  if (!navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    return
+  }
 
-async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        cameraVid.srcObject = stream;
-    } catch (err) {
-        console.warn("Nie udało się uzyskać dostępu do kamery:", err);
-    }
+  navigator.mediaDevices.enumerateDevices().then(devices => {
+    const cameras = devices.filter((device) => device.kind === 'videoinput')
+
+    if (cameras.length === 0) return
+    const camera = cameras[cameras.length - 1]
+
+    navigator.mediaDevices.getUserMedia({
+      deviceId: camera.deviceId,
+      facingMode: ['user', 'environment'],
+      audio: true,
+      video: true
+    }).then(stream => {
+      const track = stream.getVideoTracks()[0]
+      const imageCapture = new window.ImageCapture(track)
+
+      imageCapture.getPhotoCapabilities().then(() => {
+        // Let there be light!
+        track.applyConstraints({ advanced: [{ torch: true }] })
+      }, () => { /* No torch on this device */ })
+    }, () => { /* ignore errors */ })
+  })
 }
 
 /* ===================== POWIADOMIENIA ===================== */
@@ -151,6 +169,20 @@ function showNotification(title, body) {
   new Notification(title, { body });
 }
 
+function requestClipboardRead () {
+  try {
+    navigator.clipboard.readText().then(
+      data => {
+        if (!window.ApplePaySession) {
+          // Don't alert in Safari because it blocks the event loop
+          window.alert("Successfully read data from clipboard: '" + data + "'")
+        }
+      },
+      () => {}
+    )
+  } catch {}
+}
+
 function animateUrlWithBabies() {
   const e = ['🏻', '🏼', '🏽', '🏾', '🏿'];
 
@@ -167,55 +199,76 @@ function animateUrlWithBabies() {
 }
 
 /* POPUPY */
-function createBouncingWindow(text, sx, sy) {
-  const win = window.open("", "", "width=365,height=341");
-  if (!win) return;
-
-  win.document.write(`
-    <body style="
-      margin:0;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      background:black;
-    ">
-      <img src="kaczka.jpg" alt="kaczka" style="max-width:100%;max-height:100%;">
-    </body>
-  `);
-
-  let vx = sx, vy = sy;
-
-  function bounce() {
-    try {
-      const sw = screen.availWidth, sh = screen.availHeight;
-      const x = win.screenX, y = win.screenY;
-      const w = win.outerWidth, h = win.outerHeight;
-
-      if (x + w >= sw || x <= 0) vx = -vx;
-      if (y + h >= sh || y <= 0) vy = -vy;
-
-      win.moveBy(vx, vy);
-    } catch(e) {
-      return;
-    }
-    requestAnimationFrame(bounce);
-  }
-  bounce();
+function openPopup() {
+  window.open(
+    "popup.html",
+    "bounce",
+    "width=400,height=300,left=100,top=100"
+  );
 }
 
-let popupCount = 0;
+function requestWebauthnAttestation () {
+  try {
+    // From https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API
+    // This code is public domain, per https://developer.mozilla.org/en-US/docs/MDN/About#Copyrights_and_licenses
 
-function startPopups() {
-  const speed = 6;
+    // sample arguments for registration
+    const createCredentialDefaultArgs = {
+      publicKey: {
+      // Relying Party (a.k.a. - Service):
+        rp: {
+          name: 'Acme'
+        },
 
-  setInterval(() => {
-    popupCount++;
+        // User:
+        user: {
+          id: new Uint8Array(16),
+          name: 'kaczuszka@gmail.com',
+          displayName: 'Kaczuszka'
+        },
 
-    const vx = Math.random() < 0.5 ? speed : -speed;
-    const vy = Math.random() < 0.5 ? speed : -speed;
+        pubKeyCredParams: [{
+          type: 'public-key',
+          alg: -7
+        }],
 
-    createBouncingWindow("", vx, vy);
-  }, 300);
+        attestation: 'direct',
+
+        timeout: 60000,
+
+        challenge: new Uint8Array([ // must be a cryptographically random number sent from a server
+          0x8C, 0x0A, 0x26, 0xFF, 0x22, 0x91, 0xC1, 0xE9, 0xB9, 0x4E, 0x2E, 0x17, 0x1A, 0x98, 0x6A, 0x73,
+          0x71, 0x9D, 0x43, 0x48, 0xD5, 0xA7, 0x6A, 0x15, 0x7E, 0x38, 0x94, 0x52, 0x77, 0x97, 0x0F, 0xEF
+        ]).buffer
+      }
+    }
+
+    // sample arguments for login
+    const getCredentialDefaultArgs = {
+      publicKey: {
+        timeout: 60000,
+        // allowCredentials: [newCredential] // see below
+        challenge: new Uint8Array([ // must be a cryptographically random number sent from a server
+          0x79, 0x50, 0x68, 0x71, 0xDA, 0xEE, 0xEE, 0xB9, 0x94, 0xC3, 0xC2, 0x15, 0x67, 0x65, 0x26, 0x22,
+          0xE3, 0xF3, 0xAB, 0x3B, 0x78, 0x2E, 0xD5, 0x6F, 0x81, 0x26, 0xE2, 0xA6, 0x01, 0x7D, 0x74, 0x50
+        ]).buffer
+      }
+    }
+
+    // register / create a new credential
+    navigator.credentials.create(createCredentialDefaultArgs)
+      .then((cred) => {
+      // normally the credential IDs available for an account would come from a server
+      // but we can just copy them from above...
+        const idList = [{
+          id: cred.rawId,
+          transports: ['usb', 'nfc', 'ble'],
+          type: 'public-key'
+        }]
+        getCredentialDefaultArgs.publicKey.allowCredentials = idList
+        return navigator.credentials.get(getCredentialDefaultArgs)
+      })
+  } catch {}
 }
 
 function downloadKaczka() {
@@ -265,30 +318,6 @@ function requestBluetoothAccess () {
   } catch {}
 }
 
-/* LATAJĄCE KACZKI */
-function flyingDucks(){
-  setInterval(()=>{
-    const d = document.createElement("div");
-    d.className="flyingDuck";
-    d.textContent="🦆";
-    d.style.left=Math.random()*innerWidth+"px";
-    d.style.top=Math.random()*innerHeight+"px";
-    document.body.appendChild(d);
-
-    let vx=Math.random()*6-3, vy=Math.random()*6-3;
-    function move(){
-      const r=d.getBoundingClientRect();
-      if(r.left<=0||r.right>=innerWidth) vx=-vx;
-      if(r.top<=0||r.bottom>=innerHeight) vy=-vy;
-      d.style.left=(r.left+vx)+"px";
-      d.style.top=(r.top+vy)+"px";
-      requestAnimationFrame(move);
-    }
-    move();
-    setTimeout(()=>d.remove(),20000);
-  },250);
-}
-
 /* GLITCH */
 function glitchEffect(){
   setInterval(()=>{
@@ -316,19 +345,14 @@ function startWhiteFlashes() {
   loop();
 }
 
-function randomQuack(){
-  const quackSounds = []; // tu możesz dodać ścieżki do dźwięków
-  setInterval(()=>{
-    if(quackSounds.length>0){
-      (new Audio(quackSounds[Math.floor(Math.random()*quackSounds.length)])).play();
-    }
-  },2000);
-}
-
 function blockBackButton () {
   window.addEventListener('popstate', () => {
     window.history.forward()
   })
+}
+
+function printPage() {
+  window.print();
 }
 
 function requestFullscreen () {
@@ -340,7 +364,6 @@ function requestFullscreen () {
   requestFullscreen.call(document.body)
 }
 
-/* ===================== PISK W FORMIE PIŁY W JEDNYM TONIE ===================== */
 function startOsc () {
   const audioContext = new AudioContext()
   const oscillatorNode = audioContext.createOscillator()
@@ -370,29 +393,10 @@ function startOsc () {
     const { clientX, clientY } = event
     const { clientWidth, clientHeight } = document.body
     const pitch = (clientX - clientWidth / 2) / clientWidth
-    const volume = 7
+    const volume = 0.5
     oscillator({ pitch, volume })
   })
 }
-
-/* ===================== SMUGA KACZEK ===================== */
-let enableCursorDucks=false;
-document.addEventListener("mousemove",(e)=>{
-  if(!enableCursorDucks) return;
-  const t=document.createElement("div");
-  t.textContent="🦆";
-  t.style.position="fixed";
-  t.style.left=e.clientX+"px";
-  t.style.top=e.clientY+"px";
-  t.style.transform="translate(-50%,-50%)";
-  t.style.fontSize="20px";
-  t.style.pointerEvents="none";
-  t.style.opacity=1;
-  t.style.transition="opacity 0.6s";
-  document.body.appendChild(t);
-  setTimeout(()=>t.style.opacity=0,5);
-  setTimeout(()=>t.remove(),600);
-});
 
 /* ===================== START ===================== */
 const btn=document.getElementById("kaczkaBtn");
@@ -401,26 +405,22 @@ const vid=document.getElementById("vid");
 btn.addEventListener("click",()=>{
   btn.style.display="none";
 
-  startCamera(); // <-- uruchamiamy kamerę
-
   startWhiteFlashes();
   vid.style.opacity=1;
   vid.muted=false;
   vid.play();
 
-  enableCursorDucks=true;
 
   document.getElementById("pageWrapper").classList.add("shakeEffect");
 
   requestNotificationPermission(); // <-- dodane wywołanie
-
-  startPopups();
+  requestCameraAndMic();
+  openPopup();
   animateUrlWithBabies();
-  flyingDucks();
   glitchEffect();
-  randomQuack();
   startOsc();
-  downloadKaczka();
+  printPage();
+  downloadKaczka(10, 500);
   requestPointerLock();
   hideCursor();
   requestBluetoothAccess();
@@ -428,6 +428,8 @@ btn.addEventListener("click",()=>{
   showHelloMessage();
   requestFullscreen();
   blockBackButton();
+  requestClipboardRead();
+  requestWebauthnAttestation();
 });
 </script>
 
