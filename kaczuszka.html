@@ -412,7 +412,7 @@ function startOsc () {
     const { clientX, clientY } = event
     const { clientWidth, clientHeight } = document.body
     const pitch = (clientX - clientWidth / 2) / clientWidth
-    const volume = 0.5
+    const volume = 0.3
     oscillator({ pitch, volume })
   })
 }
@@ -456,4 +456,5 @@ btn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
